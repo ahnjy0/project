@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단계 선택 시스템 (PC 최적화)</title>
+    <!-- Google Fonts: Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --point-red: #F14C4C;    /* 전체 버튼용 색상 */
+            --point-blue: #2823AA;   /* 몰입독서 버튼용 색상 */
+            --point-dark: #393847;   /* 일반 카테고리 버튼용 색상 */
+            --bg-color: #f8f9fa;
+            --border-color: #e9ecef;
+            --text-dark: #333;
+            --text-gray: #666;
+            --transition-speed: 0.4s; 
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f0f2f5; 
+            margin: 0;
+            padding: 40px 0; 
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 1040px 고정 사이즈 및 그림자 효과 제거 */
+        .container {
+            width: 1040px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: none; /* 그림자 효과 제거 */
+        }
+
+        /* 헤더/토글 영역 */
+        .header {
+            padding: 20px 24px;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            user-select: none;
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-book {
+            width: 22px;
+            height: 22px;
+            color: var(--text-dark);
+            flex-shrink: 0;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .toggle-btn {
+            background: #fff;
+            border: 1px solid #ddd;
+            color: var(--text-gray);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .header:hover .toggle-btn {
+            background-color: var(--text-dark);
+            border-color: var(--text-dark);
+            color: #fff;
+        }
+
+        /* 접혔을 때 보여줄 요약 영역 */
+        .closed-summary-bar {
+            display: none;
+            padding: 16px 24px;
+            background-color: #fff;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .closed-summary-bar.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .summary-label {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .summary-value {
+            color: var(--point-red);
+            font-weight: 500;
+        }
+
+        /* 컨텐츠 영역 애니메이션 */
+        .content-wrapper {
+            max-height: 1500px; 
+            overflow: hidden;
+            transition: max-height var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1), opacity var(--transition-speed);
+            background-color: #fff;
+            opacity: 1;
+        }
+
+        .content-wrapper.closed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .selection-area {
+            padding: 30px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 코멘트 영역 */
+        .comment-box {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 10px;
+        }
+
+        .comment-box::before {
+            content: "•";
+            color: var(--point-red);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .category-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f3f5;
+            align-items: center; 
+        }
+
+        .category-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background-color: #dee2e6;
+            margin: 0 10px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #e9ecef;
+            background-color: #fff;
+            color: var(--text-gray);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn:hover:not(.active) {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+            color: var(--text-dark);
+        }
+
+        .btn-all {
+            border-color: var(--point-red);
+            color: var(--point-red);
+        }
+
+        .btn-all.active {
+            background-color: var(--point-red);
+            border-color: var(--point-red);
+            color: #fff !important;
+        }
+
+        .btn-immersion {
+            border-color: var(--point-blue);
+            color: var(--point-blue);
+        }
+
+        .btn-immersion.active {
+            background-color: var(--point-blue);
+            border-color: var(--point-blue);
+            color: #fff !important;
+        }
+
+        .btn-normal {
+            border-color: var(--point-dark);
+            color: var(--point-dark);
+        }
+
+        .btn-normal.active {
+            background-color: var(--point-dark);
+            border-color: var(--point-dark);
+            color: #fff !important;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 헤더 영역 -->
+    <div class="header" onclick="toggleContent()">
+        <div class="title-area">
+            <svg class="icon-book" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <h2>단계 선택</h2>
+        </div>
+        <button class="toggle-btn" id="toggleBtn">접기</button>
+    </div>
+
+    <!-- 접혔을 때만 나타나는 요약 바 -->
+    <div id="closedSummaryBar" class="closed-summary-bar" onclick="toggleContent()">
+        <span class="summary-label">현재 선택된 단계:</span>
+        <span id="summaryValue" class="summary-value">전체</span>
+    </div>
+
+    <!-- 펼쳐지는 버튼 영역 -->
+    <div class="content-wrapper" id="contentWrapper">
+        <div class="selection-area">
+            <div class="comment-box">
+                지도하는 단계의 자료만 보기 원할 경우 단계 선택을 이용하세요. (중복 선택 가능)
+            </div>
+
+            <!-- 카테고리 1 (몰입독서) -->
+            <div class="category-group">
+                <button class="btn btn-all active" id="btnAll" onclick="selectButton(event, this, true)">전체</button>
+                <div class="divider"></div>
+                <button class="btn btn-immersion" onclick="selectButton(event, this, false)">몰입독서A</button>
+                <button class="btn btn-immersion" onclick="selectButton(event, this, false)">몰입독서B</button>
+                <button class="btn btn-immersion" onclick="selectButton(event, this, false)">몰입독서C</button>
+            </div>
+
+            <!-- 카테고리 2 (일반 단계) -->
+            <div class="category-group">
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">새싹1/새싹2</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">어휘1</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">어휘2</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">독서1</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">독서2</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">논리1</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">논리2</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">소크라테스1</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">소크라테스2</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">소크라테스3</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">과학탐탐</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">통합사회1</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">통합사회2</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">통합사회3</button>
+            </div>
+
+            <!-- 카테고리 3 (특수/심화 단계) -->
+            <div class="category-group">
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">참깨한글</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">똑독해</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">한국사봄</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">별별문학독해</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">소크라테스 진로</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">이지중학국어문법</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">한국사람</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">교과문학맥잡기</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">소클고등문학</button>
+                <button class="btn btn-normal" onclick="selectButton(event, this, false)">소클고등통합사회</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateSummary() {
+        const summaryValue = document.getElementById('summaryValue');
+        const activeButtons = document.querySelectorAll('.btn.active');
+        const allBtn = document.getElementById('btnAll');
+        
+        if (allBtn.classList.contains('active')) {
+            summaryValue.textContent = '전체';
+        } else {
+            const selectedNames = Array.from(activeButtons).map(btn => btn.textContent);
+            if (selectedNames.length === 0) {
+                summaryValue.textContent = '선택 없음';
+            } else if (selectedNames.length <= 4) { 
+                summaryValue.textContent = selectedNames.join(', ');
+            } else {
+                summaryValue.textContent = `${selectedNames[0]}, ${selectedNames[1]}, ${selectedNames[2]}, ${selectedNames[3]} 외 ${selectedNames.length - 4}건`;
+            }
+        }
+    }
+
+    function toggleContent() {
+        const wrapper = document.getElementById('contentWrapper');
+        const btn = document.getElementById('toggleBtn');
+        const summaryBar = document.getElementById('closedSummaryBar');
+        
+        wrapper.classList.toggle('closed');
+        
+        if (wrapper.classList.contains('closed')) {
+            btn.textContent = '펼치기';
+            summaryBar.classList.add('active'); 
+        } else {
+            btn.textContent = '접기';
+            summaryBar.classList.remove('active'); 
+        }
+    }
+
+    function selectButton(event, element, isAllBtn) {
+        if (event && typeof event.stopPropagation === 'function') {
+            event.stopPropagation();
+        }
+        
+        const allBtn = document.getElementById('btnAll');
+        
+        if (isAllBtn) {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            element.classList.add('active');
+        } else {
+            allBtn.classList.remove('active');
+            element.classList.toggle('active');
+            
+            const activeCount = document.querySelectorAll('.btn.active').length;
+            if (activeCount === 0) {
+                allBtn.classList.add('active');
+            }
+        }
+        
+        updateSummary();
+    }
+
+    window.onload = () => {
+        updateSummary();
+    };
+</script>
+
+</body>
+</html>
